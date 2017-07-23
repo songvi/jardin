@@ -1,0 +1,146 @@
+Vuba\AuthN\User\UserObject:
+  type: entity
+  table: userinfo
+  repositoryClass: Vuba\AuthN\UserStorage\UserRepository
+  user_class: Vuba\AuthN\User\UserObject
+  indexes:
+      name_index:
+        columns: [ name ]
+  id:
+    uuid:
+      type: string
+      length: 255
+      unique: true
+      nullable: false
+  fields:
+    extuid:
+      type: string
+      length: 255
+      nullable: false
+    auth_source_name:
+      type: string
+      length: 25
+      nullable: false
+    sub:
+      type: string
+      length: 50
+      nullable: true
+    name:
+      type: string
+      length: 25
+      nullable: true
+    given_name:
+      type: string
+      length: 25
+      nullable: true
+    family_name:
+      type: string
+      length: 25
+      nullable: true
+    middle_name:
+      type: string
+      length: 25
+      nullable: true
+    nickname:
+      type: string
+      length: 25
+      nullable: true
+    preferred_username:
+      type: string
+      length: 50
+      nullable: true
+    profile:
+      type: string
+      length: 255
+      nullable: true
+    email:
+      type: string
+      length: 50
+      nullable: true
+    email_verified:
+      type: string
+      length: 50
+      nullable: true
+    gender:
+      type: integer
+      options:
+        unsigned: true
+        default: 0
+    birthdate:
+      type: datetime
+      nullable: true
+    zoneinfo:
+      type: string
+      length: 20
+      nullable: true
+    locale:
+      type: string
+      length: 12
+      nullable: true
+    phone_number:
+      type: string
+      length: 20
+      nullable: true
+    address:
+      type: string
+      length: 255
+      nullable: true
+    preferred_lang:
+      type: string
+      length: 10
+      nullable: true
+    preferred_theme:
+      type: string
+      length: 25
+      nullable: true
+    updated_at:
+      type: datetime
+    roles:
+      type: string
+      length: 255
+      nullable: true
+    state:
+      type: string
+      length: 25
+      nullable: false
+    lastlogon:
+      type: datetime
+      nullable: true
+    logon_count:
+      type: integer
+      options:
+        unsigned: true
+        default: 0
+      nullable: true
+    send_confirm_count:
+      type: integer
+      options:
+        unsigned: true
+        default: 0
+      nullable: true
+    forget_pw_count:
+      type: integer
+      options:
+        unsigned: true
+        default: 0
+        nullable: true
+    login_failed_count:
+      type: integer
+      options:
+        unsigned: true
+        default: 0
+    activation_code:
+      type: string
+      length: 25
+      nullable: true
+    activation_code_lifetime:
+      type: datetime
+      nullable: true
+    lock_time:
+      type: integer
+      options:
+        unsigned: true
+        default: 0
+      nullable: true
+    created_at:
+      type: datetime
