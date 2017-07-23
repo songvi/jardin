@@ -6,7 +6,6 @@
   "license": "MIT",
   "require": {
     "php": ">=5.6.0",
-    "phpauth/phpauth": "master-dev",
     "paragonie/password_lock": "master-dev",
     "dibi/dibi": "^3.0",
     "phpunit/phpunit": "^6.1",
