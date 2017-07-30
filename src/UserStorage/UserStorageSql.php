@@ -19,7 +19,7 @@ class UserStorageSql implements IUserStorage
 
     public function __construct(IConfService $confService){
         $isDevMode = true;
-        $config = Setup::createYAMLMetadataConfiguration(array($confService->getUserStorage()['mappingpath']), $isDevMode);
+        $config = Setup::createYAMLMetadataConfiguration(array(__DIR__.'/../doctrine.mapping', $isDevMode));
         $this->em = EntityManager::create($confService->getSqlConnection(), $config);
     }
 
