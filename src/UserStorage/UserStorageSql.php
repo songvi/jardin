@@ -60,7 +60,9 @@ class UserStorageSql implements IUserStorage
      */
     public function search($criterias = array())
     {
-        // TODO: Implement search() method.
+        $userRepo = $this->em->getRepository('Vuba\AuthN\User\UserObject');
+        $user = $userRepo->findOneBy($criterias);
+        return $user;
     }
 
     /**
@@ -68,7 +70,7 @@ class UserStorageSql implements IUserStorage
      */
     public function listUser($page = 0, $offset = 0, $limit = 50)
     {
-        // TODO: Implement listUser() method.
+    
     }
 
     public function deleteUser($userObject){
