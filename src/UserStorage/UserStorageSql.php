@@ -77,4 +77,15 @@ class UserStorageSql implements IUserStorage
         $this->em->remove($userObject);
         $this->em->flush();
     }
+    
+    /**
+     * @param $uid
+     * @return bool
+     */
+    public function isExist($uid)
+    {
+        $userRepo = $this->em->getRepository('Vuba\AuthN\User\UserObject');
+        $user = $userRepo->findBy(array('extuid' => $uid));
+        if(!isset($user[0])) return null;
+    }    
 }
