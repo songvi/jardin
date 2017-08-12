@@ -360,4 +360,9 @@ class AuthN
         if(is_null($user)) return;
         $this->userStorage->deleteUser($user);
     }
+    
+    public function loadUser($uid){
+        if(is_null($uid)) return;
+        return $this->userStorage->loadUser($uid);
+    }
 }
