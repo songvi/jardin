@@ -361,6 +361,11 @@ class AuthN
         $this->userStorage->deleteUser($user);
     }
     
+    public function searchUser($criterias = array()){
+        $users = $this->userStorage->search($criterias);
+        return $users;
+    }
+    
     public function loadUser($uid){
         if(is_null($uid)) return;
         return $this->userStorage->loadUser($uid);
