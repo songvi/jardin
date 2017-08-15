@@ -1,7 +1,6 @@
 Vuba\AuthN\User\UserObject:
   type: entity
   table: userinfo
-  repositoryClass: Vuba\AuthN\UserStorage\UserRepository
   user_class: Vuba\AuthN\User\UserObject
   indexes:
       name_index:
@@ -67,7 +66,7 @@ Vuba\AuthN\User\UserObject:
         unsigned: true
         default: 0
     birthdate:
-      type: datetime
+      type: date
       nullable: true
     zoneinfo:
       type: string

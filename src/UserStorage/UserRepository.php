@@ -10,7 +10,7 @@ namespace Vuba\AuthN\UserStorage;
  */
 use Doctrine\ORM\EntityManagerInterface;
 
-require_once __DIR__.'/../../config/bootstrap.php';
+#require_once __DIR__.'/../../config/bootstrap.php';
 
 class UserRepository extends \Doctrine\ORM\EntityRepository
 {

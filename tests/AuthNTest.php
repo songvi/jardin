@@ -22,11 +22,13 @@ class AuthNTest extends \PHPUnit\Framework\TestCase
         $username = 'test5';
         $password = 'password';
         $newpw = 'P@ssw0rd';
-        $activationCode = '86v7l3';
+        $activationCode = '86v7l4';
 
         $authn->deletUser($username);
 
         $this->assertTrue($authn->register($username));
+        var_dump($authn->searchUser(array('activation_code' => '86v7l4')));
+        $this->assertNotNull($authn->searchUser(array('activation_code' => '86v7l4')));
         $this->assertFalse($authn->register($username));
 
         $this->assertTrue($authn->reSend($username));

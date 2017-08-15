@@ -7,6 +7,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Vuba\AuthN\AuthStack\AuthLdap;
 use Vuba\AuthN\AuthStack\AuthMySQL;
 use Vuba\AuthN\AuthStack\AuthStack;
+use Vuba\AuthN\Exception\RetCode;
 use Vuba\AuthN\Service\ConfigService;
 use Vuba\AuthN\Service\IConfService;
 use Vuba\AuthN\User\UserFSM;
@@ -79,17 +80,20 @@ class AuthN
         if($this->authStack->getDefaultAuth()->isExist($uid)) return false;
         $user = new UserObject();
         $user->setExtuid($uid);
-        $user->setUuid(UserObject::calculeUuid($uid,'mysql'));
-        $user->setAuthSourceName('mysql');
+        $user->setUuid(UserObject::calculeUuid($uid,$this->authStack->getDefaultAuth()->authSourceName));
+        $user->setAuthSourceName($this->authStack->getDefaultAuth()->authSourceName);
         $user->setDispatcher(new EventDispatcher());
 
         $userfsm = UserFSM::getMachine($user);
-        if($userfsm->can('register')){
-            $userfsm->apply('register');
+        if($userfsm->can(UserFSM::TRANSITION_REGISTER)){
+            $userfsm->apply(UserFSM::TRANSITION_REGISTER );
             $user = $userfsm->getObject();
             $this->userStorage->save($user);
             $this->authStack->getDefaultAuth()->createUser($uid,'');
             return true;
+        }
+        else{
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
         }
         return false;
     }
@@ -106,7 +110,9 @@ class AuthN
             $this->userStorage->save($userfsm->getObject());
             return true;
         }
-        return false;
+        else{
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
     }
 
     public function confirm($uid, $password, $activationCode){
@@ -122,12 +128,15 @@ class AuthN
 
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
-        if(!$userfsm->can('confirm')) return false;
-        $this->authStack->getDefaultAuth()->updatePassword($uid,$password);
-        $userfsm->apply('confirm');
-        $this->userStorage->save($userfsm->getObject());
-
-        return true;
+        if(!$userfsm->can(UserFSM::TRANSITION_CONFIRM)) {
+            $this->authStack->getDefaultAuth()->updatePassword($uid, $password);
+            $userfsm->apply(UserFSM::TRANSITION_CONFIRM);
+            $this->userStorage->save($userfsm->getObject());
+            return true;
+        }
+        else{
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
     }
 
     public function login($uid, $password){
@@ -137,8 +146,9 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
-        if(!$userfsm->can('login')) return false;
-
+        if(!$userfsm->can(UserFSM::TRANSITION_LOGIN)) {
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
 
         if($this->authStack->getDefaultAuth()->login($uid, $password)){
             $userfsm->apply('login');
@@ -162,8 +172,9 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
-        if(!$userfsm->can('modify')) return false;
-
+        if(!$userfsm->can(UserFSM::TRANSITION_MODIFY)) {
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
         // set user by $kv array
         /*
             'sub',
@@ -251,7 +262,7 @@ class AuthN
                 }
             }
         }
-        $userfsm->apply('modify');
+        $userfsm->apply(UserFSM::TRANSITION_MODIFY);
         $this->userStorage->save($userfsm->getObject());
 
         return true;
@@ -266,7 +277,10 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
-        if(!$userfsm->can(UserFSM::TRANSITION_RESETPASSWORD)) return false;
+        if(!$userfsm->can(UserFSM::TRANSITION_RESETPASSWORD)) {
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
+
         if($this->authStack->getDefaultAuth()->checkPassword($uid, $oldpassword)){
             $this->authStack->getDefaultAuth()->updatePassword($uid, $newpassword);
             return true;
@@ -282,7 +296,9 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
-        if(!$userfsm->can(UserFSM::TRANSITION_FORGOTPW)) return false;
+        if(!$userfsm->can(UserFSM::TRANSITION_FORGOTPW)){
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
         
         $userfsm->apply(UserFSM::TRANSITION_FORGOTPW);
         $this->userStorage->save($userfsm->getObject());
@@ -297,7 +313,9 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
-        if(!$userfsm->can(UserFSM::TRANSITION_RESEND_FORGOTPW)) return false;
+        if(!$userfsm->can(UserFSM::TRANSITION_RESEND_FORGOTPW)) {
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
 
         $userfsm->apply(UserFSM::TRANSITION_RESEND_FORGOTPW);
         $this->userStorage->save($userfsm->getObject());
@@ -312,9 +330,11 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
-        if(!$userfsm->can('lock')) return false;
+        if(!$userfsm->can(UserFSM::TRANSITION_LOCK)) {
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
 
-        $userfsm->apply('lock');
+        $userfsm->apply(UserFSM::TRANSITION_LOCK);
         $this->userStorage->save($userfsm->getObject());
         return true;
     }
@@ -326,9 +346,11 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
-        if(!$userfsm->can('unlock')) return false;
+        if(!$userfsm->can(UserFSM::TRANSITION_UNLOCK)) {
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
 
-        $userfsm->apply('unlock');
+        $userfsm->apply(UserFSM::TRANSITION_UNLOCK);
         $this->userStorage->save($userfsm->getObject());
         return true;
     }
@@ -340,9 +362,11 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
-        if(!$userfsm->can('close')) return false;
+        if(!$userfsm->can(UserFSM::TRANSITION_CLOSE)) {
+            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+        }
 
-        $userfsm->apply('close');
+        $userfsm->apply(UserFSM::TRANSITION_CLOSE);
         $this->userStorage->save($userfsm->getObject());
         return true;
     }
@@ -355,9 +379,20 @@ class AuthN
     }
 
     public function deletUser($uid){
-        $this->authStack->getDefaultAuth()->delete($uid);
         $user = $this->userStorage->loadUser($uid);
-        if(is_null($user)) return;
+        if (!$this->authStack->getDefaultAuth()->isExist($uid) || is_null($user)) {
+            throw new \Exception("User does not exist", RetCode::USER_NOT_EXIST);
+        }
+        $this->authStack->getDefaultAuth()->delete($uid);
         $this->userStorage->deleteUser($user);
+    }
+
+    public function searchUser($criterias = array()){
+        $users = $this->userStorage->search($criterias);
+        return $users;
+    }
+    public function loadUser($uid){
+        if(is_null($uid)) return;
+        return $this->userStorage->loadUser($uid);
     }
 }
