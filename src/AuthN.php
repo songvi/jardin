@@ -4,11 +4,9 @@ namespace Vuba\AuthN;
 
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use Vuba\AuthN\AuthStack\AuthLdap;
-use Vuba\AuthN\AuthStack\AuthMySQL;
+use Symfony\Component\Security\Core\User\User;
 use Vuba\AuthN\AuthStack\AuthStack;
 use Vuba\AuthN\Exception\RetCode;
-use Vuba\AuthN\Service\ConfigService;
 use Vuba\AuthN\Service\IConfService;
 use Vuba\AuthN\User\UserFSM;
 use Vuba\AuthN\User\UserObject;
@@ -41,43 +39,32 @@ class AuthN
      * @param IConfService $confService
      */
     public function __construct(IConfService $confService){
-        switch(strtolower($confService->getAuthType())){
-            case 'sql':
-                $authsql = new AuthMySQL($confService->getSqlConnection(), $confService->getAuthStorage());
-                $this->authStack = new AuthStack($authsql);
+        $this->authStack = new AuthStack($confService);
 
-                break;
-
-            case 'ldap':
-                $this->authStack = new AuthStack();
-                $auth = new AuthLdap();
-                $this->authStack->addAuth($auth, $auth->authSourceName);
-                break;
-            default:
-                break;
+        $userStorage = $confService->getUserStorage();
+        if(!empty($userStorage) && isset($userStorage['type'])) {
+            switch (strtolower($userStorage['type'])) {
+                case 'sql':
+                    $Storage = new UserStorageSql($confService);
+                    $this->userStorage = $Storage;
+                    break;
+                case 'ldap':
+                    break;
+                default:
+                    break;
+            }
         }
-
-        switch($confService->getUserStorageType()){
-            case 'sql':
-                $userStorage = new UserStorageSql($confService);
-                $this->userStorage = $userStorage;
-                break;
-            case 'ldap':
-                break;
-            default:
-                break;
-        }
-
     }
 
     /**
-     * @param $uid
-     * @return bool
-     * @throws \Finite\Exception\StateException
      *
      */
     public function register($uid){
-        if($this->authStack->getDefaultAuth()->isExist($uid)) return false;
+        // If user's already existed in auth sql and auth storage
+        if($this->authStack->getDefaultAuth()->isExist($uid) ||
+            $this->userStorage->isExist($uid)
+        ) return false;
+
         $user = new UserObject();
         $user->setExtuid($uid);
         $user->setUuid(UserObject::calculeUuid($uid,$this->authStack->getDefaultAuth()->authSourceName));
@@ -88,12 +75,9 @@ class AuthN
         if($userfsm->can(UserFSM::TRANSITION_REGISTER)){
             $userfsm->apply(UserFSM::TRANSITION_REGISTER );
             $user = $userfsm->getObject();
-            $this->userStorage->save($user);
-            $this->authStack->getDefaultAuth()->createUser($uid,'');
-            return true;
-        }
-        else{
-            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+            // Create user in storage
+            // Create user in auth table
+            return $this->userStorage->save($user) && $this->authStack->getDefaultAuth()->createUser($uid,'');
         }
         return false;
     }
@@ -103,16 +87,13 @@ class AuthN
         $user = $this->userStorage->loadUser($uid);
         if(is_null($user)) return false;
         $user->setDispatcher(new EventDispatcher());
-
         $userfsm = UserFSM::getMachine($user);
         if($userfsm->can(UserFSM::TRANSITION_RESEND)){
             $userfsm->apply(UserFSM::TRANSITION_RESEND);
             $this->userStorage->save($userfsm->getObject());
             return true;
         }
-        else{
-            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
-        }
+        return false;
     }
 
     public function confirm($uid, $password, $activationCode){
@@ -142,27 +123,41 @@ class AuthN
     public function login($uid, $password){
         if(is_null($uid) || is_null($password)) return false;
 
-        $user = $this->userStorage->loadUser($uid);
-        $user->setDispatcher(new EventDispatcher());
-        $userfsm = UserFSM::getMachine($user);
+        $user = $this->authStack->login($uid, $password);
+        if($user !== null){
+            $userObject = $this->userStorage->loadUser($uid, $user['authsource']);
+            // if login successfully logs in but does not exist in storage,
+            // Create new in storage
+            if ($userObject === null) {
+                $userObject = new UserObject();
+                $userObject->setState(UserFSM::USER_STATE_NORMAL);
+                $userObject->setUuid($user['uuid']);
+                $userObject->setAuthSourceName($user['authsource']);
+                $userObject->setCreatedAt(new \DateTime('now'));
+                $userObject->setUpdatedAt(new \DateTime('now'));
+                $userObject->setSendConfirmCount(0);
 
-        if(!$userfsm->can(UserFSM::TRANSITION_LOGIN)) {
-            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
-        }
-
-        if($this->authStack->getDefaultAuth()->login($uid, $password)){
-            $userfsm->apply('login');
-            $this->userStorage->save($userfsm->getObject());
-            return true;
-        }
-        else{
-            // Login with wrong password
-            $user = $userfsm->getObject();
-            if($user instanceof UserObject){
-                $user->setLoginFailedCount($user->getLoginFailedCount() + 1);
+                $this->userStorage->getDefaultAuth->save($userObject);
             }
-        }
-        return false;
+
+                $userObject->setDispatcher(new EventDispatcher());
+                $userfsm = UserFSM::getMachine($userObject);
+
+                if(!$userfsm->can(UserFSM::TRANSITION_LOGIN)) {
+                    throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+                }
+                else{
+                    // Login with wrong password
+                    $user = $userfsm->getObject();
+                    if($user instanceof UserObject){
+                        $user-save>setLoginFailedCount($user->getLoginFailedCount() + 1);
+                    }
+                }
+                $userfsm->apply('login');
+                $this->userStorage->save($userfsm->getObject());
+                return true;
+            }
+        throw new LoginFailed("Login failed");
     }
 
     public function modify($uid, $kv = array()){
@@ -378,7 +373,7 @@ class AuthN
 
     }
 
-    public function deletUser($uid){
+    public function deleteUser($uid){
         $user = $this->userStorage->loadUser($uid);
         if (!$this->authStack->getDefaultAuth()->isExist($uid) || is_null($user)) {
             throw new \Exception("User does not exist", RetCode::USER_NOT_EXIST);
@@ -391,6 +386,7 @@ class AuthN
         $users = $this->userStorage->search($criterias);
         return $users;
     }
+
     public function loadUser($uid){
         if(is_null($uid)) return;
         return $this->userStorage->loadUser($uid);

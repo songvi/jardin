@@ -7,12 +7,13 @@ use Ramsey\Uuid\Uuid;
 
 abstract class AbstractAuth
 {
-
     public $authSourceName;
+    public $config;
 
-    public function __construct($authSourceName)
+    public function __construct($authSourceName, $config)
     {
         $this->authSourceName = $authSourceName;
+        $this->config = $config;
     }
 
     /**
@@ -21,20 +22,8 @@ abstract class AbstractAuth
      * @return UserObject or false
      *
      */
-    public function checkPassword($uid, $passphrase, Key $key = null)
+    public function checkPassword($uid, $passphrase)
     {
-        return false;
-    }
-
-
-    /**
-     * @param $uid
-     * @param $passphrase
-     * @return bool
-     */
-    public function createUser($uid, $passphrase)
-    {
-
         return false;
     }
 
@@ -48,36 +37,15 @@ abstract class AbstractAuth
         return false;
     }
 
-    /**
-     * @param $uid
-     */
-    public function delete($uid)
-    {
-
+    public function isReadOnly(){
+        return true;
     }
 
-    /**
-     * @param $uid
-     * @return \Ramsey\Uuid\UuidInterface
-     */
-    public function getUuid($uid)
-    {
-        $uuid = Uuid::uuid5(strtolower(trim($this->authSourceName)), strtolower(trim($uid)));
-        return $uuid;
+    public function login($uid, $passphrase){
+        return false;
     }
 
-    /**
-     *
-     */
-    public function sendConfirmation(){
-
-    }
-
-    public function lock($uid){
-
-    }
-
-    public function updatePassword($uid, $password){
-
+    public function listUser($state){
+        return array();
     }
 }

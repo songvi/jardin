@@ -2,10 +2,7 @@
 
 namespace Vuba\AuthN\UserStorage;
 
-use Symfony\Component\Validator\Tests\Fixtures\Entity;
-use Vuba\AuthN\Exception\UserNotFountException;
-use Vuba\AuthN\Service\ConfigService;
-use Vuba\AuthN\Service\IConfService;
+use PHPUnit\Framework\Exception;
 use Vuba\AuthN\User\UserObject;
 use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
@@ -14,19 +11,16 @@ use Doctrine\ORM\EntityManager;
 
 class UserStorageSql implements IUserStorage
 {
-
     protected $em;
 
-    public function __construct(IConfService $confService){
+    public function __construct($confService){
         $isDevMode = true;
-        $config = Setup::createYAMLMetadataConfiguration(array(__DIR__.'/../doctrine.mapping', $isDevMode));
-        $this->em = EntityManager::create($confService->getSqlConnection(), $config);
+        $userStorage = $confService->getUserStorage();
+        $config = Setup::createYAMLMetadataConfiguration(array($userStorage['mappingpath'], $isDevMode));
+        $this->em = EntityManager::create($userStorage['sqlconnection'], $config);
     }
 
     /**
-     * @param $uid
-     * @return mixed
-     * @throws \Exception
      *
      */
     public function loadUser($uid)
@@ -44,14 +38,18 @@ class UserStorageSql implements IUserStorage
      */
     public function save(UserObject $userObject)
     {
-        $result = $this->em->find('Vuba\AuthN\User\UserObject', $userObject->getUuid());
-        if($result) {
-            $this->em->merge($userObject);
+        try {
+            $result = $this->em->find('Vuba\AuthN\User\UserObject', $userObject->getUuid());
+            if ($result) {
+                $this->em->merge($userObject);
+            } else {
+                $this->em->persist($userObject);
+            }
+            $this->em->flush();
+        }catch(Exception $e){
+            return false;
         }
-        else {
-            $this->em->persist($userObject);
-        }
-        $this->em->flush();
+        return true;
     }
 
     /**
@@ -70,11 +68,22 @@ class UserStorageSql implements IUserStorage
      */
     public function listUser($page = 0, $offset = 0, $limit = 50)
     {
-        // TODO: Implement listUser() method.
+    
     }
 
     public function deleteUser($userObject){
         $this->em->remove($userObject);
         $this->em->flush();
     }
+    
+    /**
+     * @param $uid
+     * @return bool
+     */
+    public function isExist($uid)
+    {
+        $userRepo = $this->em->getRepository('Vuba\AuthN\User\UserObject');
+        $user = $userRepo->findBy(array('extuid' => $uid));
+        if(!isset($user[0])) return null;
+    }    
 }

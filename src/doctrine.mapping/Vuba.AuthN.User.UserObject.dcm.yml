@@ -130,7 +130,7 @@ Vuba\AuthN\User\UserObject:
         default: 0
     activation_code:
       type: string
-      length: 25
+      length: 65
       nullable: true
     activation_code_lifetime:
       type: datetime

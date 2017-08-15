@@ -24,42 +24,28 @@ class AuthMySQL extends AbstractAuth
      *
      *  password hash algo = MD5|SHA256|Bcrypt|bcrypt + sha256 + base64
      *
-     * )
      */
-    protected $sqlConfig = array();
     protected $conn;
 
-    public function __construct($sqlConnection, $authInfo)
+    public function __construct($config)
     {
-        $this->authSourceName = "mysql";
+        $sqlConnection  = $config['sqlconnection'];
 
-/*        $this->sqlConfig = $sqlConfigs;
-        $options = [
-            'driver'   => 'mysqli',
-            'host'     => $this->sqlConfig["host"],
-            'username' => $this->sqlConfig["user"],
-            'password' => $this->sqlConfig["password"],
-            'dbname' => $this->sqlConfig["dbname"],
-            'charset'  => 'utf8',
-        ];*/
+        $cfg = $sqlConnection;
+        $cfg['databasename']        = $sqlConnection['dbname'];
+        $cfg['database']            = $sqlConnection['dbname'];
+        $cfg['table']               = $config['table'];
+        $cfg['useridcolumn']        = $config['usercol'];
+        $cfg['passwordcolumn']      = $config['passwordcol'];
 
-        //var_dump($configs['AuthN']);
-
-        $config = $sqlConnection;
-        $config['databasename'] = $sqlConnection['dbname'];
-        $config['database'] = $sqlConnection['dbname'];
-        $config['table'] = $authInfo['table'];
-        $config['useridcolumn'] = $authInfo['usercol'];
-        $config['passwordcolumn'] = $authInfo['passwordcol'];
-
-
-
-        $this->conn = new Connection($config);
-        //var_dump($cfg['auth']);
-        if($authInfo['asciikey']) $asciikey = $authInfo['asciikey'];
+        $this->conn = new Connection($cfg);
+        if($config['asciikey']) $asciikey = $config['asciikey'];
         $this->key = KEY::loadFromAsciiSafeString($asciikey);
     }
 
+    public function isReadOnly(){
+        return false;
+    }
 
     public function createUser($uid, $passphrase = null){
         if(!$this->isExist($uid)){
@@ -68,7 +54,6 @@ class AuthMySQL extends AbstractAuth
             }else{
                 $pass = null;
             }
-            //var_dump($pass);
             $data = ["uid" => $uid,
                 "password" => $pass,
                 "state" => UserFSM::USER_STATE_INIT
@@ -93,12 +78,6 @@ class AuthMySQL extends AbstractAuth
         }
     }
 
-    public  function changeUserState($uid, $state){
-        if($this->isExist($uid)){
-            $result = $this->conn->query("UPDATE [users] SET [state] = %s WHERE [uid] = %s", $state, $uid);
-        }
-    }
-
     public function isExist($uid){
         $result = $this->conn->query("SELECT COUNT(*) from [users] WHERE [uid] = %s", $uid);
         return (intval($result->fetchSingle()) > 0);
@@ -120,19 +99,13 @@ class AuthMySQL extends AbstractAuth
     public function login($uid, $passphrase){
         return $this->checkPassword($uid, $passphrase, $this->key);
     }
+
     /**
-     * @param $id
-     * @param $passphrase
-     * @return UserObject or false
      *
      */
     public function checkPassword($uid, $passphrase, Key $key = null){
         if(!$encryptedPassPhrase = $this->getPassPhrase($uid)) return false;
         return PasswordLock::decryptAndVerify($passphrase, $encryptedPassPhrase, $this->key);
-    }
-
-    public function setKey($key){
-        $this->key = $key;
     }
 
     public function getPassPhrase($uid){
@@ -149,11 +122,8 @@ class AuthMySQL extends AbstractAuth
         return false;
     }
 
-    public function getState($uid){
-        if($this->isExist($uid)){
-            $result = $this->conn->query("SELECT [state] FROM [users] WHERE [uid] = %s", $uid);
-            return $result->fetchSingle();
-        }
-        return false;
+    public function listUser($state){
+        $result = $this->conn->query("SELECT [uid] from [users] WHERE [state] = %s", $state);
+        return intval($result->fetchSingle());
     }
 }
