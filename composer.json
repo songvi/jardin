@@ -14,7 +14,7 @@
     "symfony/event-dispatcher": "^3.0",
     "doctrine/orm": "2.5.6",
     "symfony/http-foundation": "^3.0",
-    "symfony/ldap": "^3.0",
+    "symfony/ldap": "^2.8",
     "symfony/yaml": "^3.0"
   },
   "autoload": {
