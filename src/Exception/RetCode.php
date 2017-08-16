@@ -6,4 +6,5 @@ class RetCode{
     const ACTION_NOT_ALLOWED    = 1001;
     const USER_NOT_EXIST        = 1002;
     const LOGIN_FAILED          = 1003;
+    const ACTIVATION_KEY_INVALID    = 1004;
 }

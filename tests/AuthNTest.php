@@ -1,8 +1,11 @@
 <?php
 
 use Vuba\AuthN;
+use Vuba\AuthN\Exception\ActivationKeyInvalid;
+
 require '../src/AuthN.php';
 require '../vendor/autoload.php';
+
 
 class AuthNTest extends \PHPUnit\Framework\TestCase
 {
@@ -33,10 +36,12 @@ class AuthNTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($authn->reSend($username));
         $this->assertTrue($authn->reSend($username));
 
+
         $this->assertFalse($authn->reSend($username));
         $this->assertFalse($authn->reSend($username));
 
-        $this->assertTrue($authn->confirm($username, $password, $activationCode));
+        $this->expectException(ActivationKeyInvalid::class);
+        $authn->confirm($username, $password, $activationCode);
 
         $this->assertTrue($authn->login($username,$password));
         $this->assertFalse($authn->login($username,$newpw));

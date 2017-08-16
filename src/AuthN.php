@@ -6,6 +6,8 @@ use Doctrine\ORM\EntityManager;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Security\Core\User\User;
 use Vuba\AuthN\AuthStack\AuthStack;
+use Vuba\AuthN\Exception\ActionNotAllowOnState;
+use Vuba\AuthN\Exception\ActivationKeyInvalid;
 use Vuba\AuthN\Exception\RetCode;
 use Vuba\AuthN\Service\IConfService;
 use Vuba\AuthN\User\UserFSM;
@@ -85,7 +87,8 @@ class AuthN
     public function reSend($uid){
         if(is_null($uid)) return false;
         $user = $this->userStorage->loadUser($uid);
-        if(is_null($user)) return false;
+        if(empty($user)) return false;
+
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
         if($userfsm->can(UserFSM::TRANSITION_RESEND)){
@@ -99,11 +102,12 @@ class AuthN
     public function confirm($uid, $password, $activationCode){
         if(is_null($password)) return false;
         $user = $this->userStorage->loadUser($uid);
+        if(empty($user)) return false;
 
-        if(empty($activationCode)) throw new \Exception("activationkey_invalid");
+        if(empty($activationCode)) throw new ActivationKeyInvalid("Activation key invalid");
         if($user instanceof UserObject){
             if(strtolower($activationCode) !== $user->getActivationCode()){
-                throw new \Exception("activationkey_incorrect");
+                throw new ActivationKeyInvalid("Activation key invalid");
             }
         }
 
@@ -116,7 +120,7 @@ class AuthN
             return true;
         }
         else{
-            throw new \Exception("Action not allowed on state", RetCode::ACTION_NOT_ALLOWED);
+            throw new ActionNotAllowOnState("Action not allowed on state");
         }
     }
 
@@ -164,6 +168,8 @@ class AuthN
         if(is_null($uid)) return false;
 
         $user = $this->userStorage->loadUser($uid);
+        if(empty($user)) return false;
+
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
@@ -269,6 +275,8 @@ class AuthN
         is_null($newpassword)) return false;
 
         $user = $this->userStorage->loadUser($uid);
+        if(empty($user)) return false;
+
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
@@ -288,6 +296,8 @@ class AuthN
         if(is_null($uid)) return false;
 
         $user = $this->userStorage->loadUser($uid);
+        if(empty($user)) return false;
+
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
@@ -305,6 +315,8 @@ class AuthN
         if(is_null($uid)) return false;
 
         $user = $this->userStorage->loadUser($uid);
+        if(empty($user)) return false;
+
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
@@ -322,6 +334,8 @@ class AuthN
         if(is_null($uid)) return false;
 
         $user = $this->userStorage->loadUser($uid);
+        if(empty($user)) return false;
+
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
@@ -338,6 +352,8 @@ class AuthN
         if(is_null($uid)) return false;
 
         $user = $this->userStorage->loadUser($uid);
+        if(empty($user)) return false;
+
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
@@ -354,6 +370,8 @@ class AuthN
         if(is_null($uid)) return false;
 
         $user = $this->userStorage->loadUser($uid);
+        if(empty($user)) return false;
+
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
@@ -375,6 +393,8 @@ class AuthN
 
     public function deleteUser($uid){
         $user = $this->userStorage->loadUser($uid);
+        if(empty($user)) return false;
+
         if (!$this->authStack->getDefaultAuth()->isExist($uid) || is_null($user)) {
             throw new \Exception("User does not exist", RetCode::USER_NOT_EXIST);
         }
