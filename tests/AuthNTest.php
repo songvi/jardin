@@ -25,7 +25,7 @@ class AuthNTest extends \PHPUnit\Framework\TestCase
         $username = 'test5';
         $password = 'password';
         $newpw = 'P@ssw0rd';
-        $activationCode = '86v7l4';
+        $activationCode = 'hZkFsPjMTRUVcyuR1FqZXFlnZ7JWMpn4pIJRx2ErUzm67RY9wo8t4uR4CA0o0otq';
 
         $authn->deleteUser($username);
 
@@ -35,8 +35,6 @@ class AuthNTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($authn->reSend($username));
         $this->assertTrue($authn->reSend($username));
         $this->assertTrue($authn->reSend($username));
-
-
         $this->assertFalse($authn->reSend($username));
         $this->assertFalse($authn->reSend($username));
 
