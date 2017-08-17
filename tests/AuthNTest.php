@@ -27,6 +27,7 @@ class AuthNTest extends \PHPUnit\Framework\TestCase
         $newpw = 'P@ssw0rd';
         $activationCode = 'hZkFsPjMTRUVcyuR1FqZXFlnZ7JWMpn4pIJRx2ErUzm67RY9wo8t4uR4CA0o0otq';
 
+        $this->expectExceptionCode(AuthN\Exception\RetCode::USER_NOT_EXIST);
         $authn->deleteUser($username);
 
         $this->assertTrue($authn->register($username));
@@ -215,6 +216,7 @@ class AuthNTest extends \PHPUnit\Framework\TestCase
         $this->assertTrue($authn->login($username,$password));
         $this->assertTrue($authn->login($username,$password));
 
+        $this->assertTrue($authn->deleteUser($username));
     }
 }
 
