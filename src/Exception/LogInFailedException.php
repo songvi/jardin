@@ -1,7 +1,7 @@
 <?php
 namespace Vuba\AuthN\Exception;
 
-class LoginFailed extends AuthNException
+class LoginFailedException extends AuthNException
 {
     public function __construct($message){
         if ($message === null) {$msg = "Login failed";}

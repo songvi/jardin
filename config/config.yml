@@ -42,3 +42,6 @@ authentication:
      binduser: "cn=admin,dc=example,dc=org"
      bindpassword: P@ssw0rd
      basedn: "ou=people,dc=example,dc=org"
+# Services:
+# mail
+# log

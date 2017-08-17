@@ -10,4 +10,6 @@ interface IConfService{
 
     public function getUserStorage();
     public function getAuth();
+    // TODO
+    //public function getServices();
 }

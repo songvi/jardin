@@ -6,7 +6,7 @@ use Doctrine\ORM\EntityManager;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Security\Core\User\User;
 use Vuba\AuthN\AuthStack\AuthStack;
-use Vuba\AuthN\Exception\ActionNotAllowOnState;
+use Vuba\AuthN\Exception\ActionNotAllowOnStateException;
 use Vuba\AuthN\Exception\ActivationKeyInvalid;
 use Vuba\AuthN\Exception\LoginFailed;
 use Vuba\AuthN\Exception\UserNotFoundException;
@@ -15,6 +15,7 @@ use Vuba\AuthN\User\UserFSM;
 use Vuba\AuthN\User\UserObject;
 use Vuba\AuthN\UserStorage\UserStorageSql;
 use Vuba\AuthN\UserUserObject;
+use Vuba\AuthN\Context\IContext;
 
 /**
  * Class AuthN
@@ -63,7 +64,8 @@ class AuthN
     /**
      *
      */
-    public function register($uid)
+
+    public function register($uid, IContext $context= null)
     {
         // If user's already existed in auth sql and auth storage
         if ($this->authStack->getDefaultAuth()->isExist($uid) || $this->userStorage->isExist($uid)
@@ -83,16 +85,15 @@ class AuthN
             // Create user in auth table
             return $this->userStorage->save($user) && $this->authStack->getDefaultAuth()->createUser($uid, '');
         }else{
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
-        return false;
     }
 
-    public function reSend($uid)
+    public function reSend($uid, IContext $context = null)
     {
         if (is_null($uid)) return false;
         $user = $this->userStorage->loadUser($uid);
-        if (empty($user)) return false;
+        if (empty($user)) throw new UserNotFoundException();
 
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
@@ -101,20 +102,19 @@ class AuthN
             $this->userStorage->save($userfsm->getObject());
             return true;
         }else{
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
-        return false;
     }
 
-    public function confirm($uid, $password, $activationCode)
+    public function confirm($uid, $password, $activationCode, IContext $context= null)
     {
         if (is_null($password)) return false;
         $user = $this->userStorage->loadUser($uid);
-        if (empty($user)) return false;
+        if (empty($user)) throw new UserNotFoundException();
 
         if (empty($activationCode)) throw new ActivationKeyInvalid("Activation key invalid");
         if ($user instanceof UserObject) {
-            if (strtolower($activationCode) !== $user->getActivationCode()) {
+            if ($activationCode !== $user->getActivationCode()) {
                 throw new ActivationKeyInvalid("Activation key invalid");
             }
         }
@@ -127,11 +127,11 @@ class AuthN
             $this->userStorage->save($userfsm->getObject());
             return true;
         }else{
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
     }
 
-    public function login($uid, $password)
+    public function login($uid, $password, IContext $context= null)
     {
         if (is_null($uid) || is_null($password)) return false;
 
@@ -158,6 +158,7 @@ class AuthN
             if ($userfsm->can(UserFSM::TRANSITION_LOGIN)) {
                 $userfsm->apply('login');
                 $this->userStorage->save($userfsm->getObject());
+                return true;
             } else {
                 // Login with wrong password
                 $user = $userfsm->getObject();
@@ -167,23 +168,22 @@ class AuthN
                 }
                 throw new LoginFailed();
             }
-            return false;
         }
-        throw new LoginFailed();
+        throw new UserNotFoundException();
     }
 
-    public function modify($uid, $kv = array())
+    public function modify($uid, $kv = array(), IContext $context= null)
     {
         if (is_null($uid)) return false;
 
         $user = $this->userStorage->loadUser($uid);
-        if (empty($user)) return false;
+        if (empty($user)) throw new UserNotFoundException();
 
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
 
         if (!$userfsm->can(UserFSM::TRANSITION_MODIFY)) {
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
         // set user by $kv array
         /*
@@ -278,7 +278,7 @@ class AuthN
         return true;
     }
 
-    public function resetpw($uid, $oldpassword, $newpassword)
+    public function resetpw($uid, $oldpassword, $newpassword, IContext $context= null)
     {
         if (is_null($uid) ||
             is_null($oldpassword) ||
@@ -292,9 +292,10 @@ class AuthN
         $userfsm = UserFSM::getMachine($user);
 
         if (!$userfsm->can(UserFSM::TRANSITION_RESETPASSWORD)) {
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
 
+        // TODO Check password conform
         if ($this->authStack->getDefaultAuth()->checkPassword($uid, $oldpassword)) {
             $this->authStack->getDefaultAuth()->updatePassword($uid, $newpassword);
             return true;
@@ -302,7 +303,7 @@ class AuthN
         return false;
     }
 
-    public function forgotpw($uid)
+    public function forgotpw($uid, IContext $context= null)
     {
         if (is_null($uid)) return false;
         $user = $this->userStorage->loadUser($uid);
@@ -312,7 +313,7 @@ class AuthN
         $userfsm = UserFSM::getMachine($user);
 
         if (!$userfsm->can(UserFSM::TRANSITION_FORGOTPW)) {
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
 
         $userfsm->apply(UserFSM::TRANSITION_FORGOTPW);
@@ -320,7 +321,7 @@ class AuthN
         return true;
     }
 
-    public function reSendForgotpw($uid)
+    public function reSendForgotpw($uid, IContext $context= null)
     {
         if (is_null($uid)) return false;
         $user = $this->userStorage->loadUser($uid);
@@ -328,14 +329,14 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
         if (!$userfsm->can(UserFSM::TRANSITION_RESEND_FORGOTPW)) {
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
         $userfsm->apply(UserFSM::TRANSITION_RESEND_FORGOTPW);
         $this->userStorage->save($userfsm->getObject());
         return true;
     }
 
-    public function lock($uid)
+    public function lock($uid, IContext $context= null)
     {
         if (is_null($uid)) return false;
         $user = $this->userStorage->loadUser($uid);
@@ -343,14 +344,14 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
         if (!$userfsm->can(UserFSM::TRANSITION_LOCK)) {
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
         $userfsm->apply(UserFSM::TRANSITION_LOCK);
         $this->userStorage->save($userfsm->getObject());
         return true;
     }
 
-    public function unlock($uid)
+    public function unlock($uid, IContext $context= null)
     {
         if (is_null($uid)) return false;
         $user = $this->userStorage->loadUser($uid);
@@ -358,14 +359,14 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
         if (!$userfsm->can(UserFSM::TRANSITION_UNLOCK)) {
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
         $userfsm->apply(UserFSM::TRANSITION_UNLOCK);
         $this->userStorage->save($userfsm->getObject());
         return true;
     }
 
-    public function close($uid)
+    public function close($uid, IContext $context= null)
     {
         if (is_null($uid)) return false;
         $user = $this->userStorage->loadUser($uid);
@@ -373,7 +374,7 @@ class AuthN
         $user->setDispatcher(new EventDispatcher());
         $userfsm = UserFSM::getMachine($user);
         if (!$userfsm->can(UserFSM::TRANSITION_CLOSE)) {
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
         $userfsm->apply(UserFSM::TRANSITION_CLOSE);
         $this->userStorage->save($userfsm->getObject());
@@ -383,33 +384,42 @@ class AuthN
     /**
      *
      */
-    public function getUserList()
+    public function getUserList(IContext $context= null)
     {
 
     }
 
-    public function deleteUser($uid)
+    public function deleteUser($uid, IContext $context= null)
     {
         $user = $this->userStorage->loadUser($uid);
         if (empty($user)) throw new UserNotFoundException();
 
         if (!$this->authStack->getDefaultAuth()->isExist($uid) || is_null($user)) {
-            throw new ActionNotAllowOnState();
+            throw new ActionNotAllowOnStateException();
         }
         $this->authStack->getDefaultAuth()->delete($uid);
         $this->userStorage->deleteUser($user);
         return true;
     }
 
-    public function searchUser($criterias = array())
+    public function searchUser($criterias = array(), IContext $context= null)
     {
         $users = $this->userStorage->search($criterias);
         return $users;
     }
 
-    public function loadUser($uid)
+    public function loadUser($uid, IContext $context= null)
     {
-        if (is_null($uid)) return;
+        if (is_null($uid)) throw new UserNotFoundException();
         return $this->userStorage->loadUser($uid);
+    }
+
+    public function getCurrentState($uid, IContext $context= null)
+    {
+        if (is_null($uid)) throw new UserNotFoundException();
+        $user = $this->userStorage->loadUser($uid);
+        $user->setDispatcher(new EventDispatcher());
+        $userfsm = UserFSM::getMachine($user);
+        return $userfsm->getCurrentState();
     }
 }
