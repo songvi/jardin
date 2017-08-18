@@ -134,7 +134,6 @@ class AuthN
     public function login($uid, $password, IContext $context= null)
     {
         if (is_null($uid) || is_null($password)) return false;
-
         $user = $this->authStack->login($uid, $password);
         if ($user !== null) {
             $userObject = $this->userStorage->loadUser($uid, $user['authsource']);

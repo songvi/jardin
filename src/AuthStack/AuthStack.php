@@ -89,8 +89,9 @@ class AuthStack extends AbstractAuth
         {
             if($auth instanceof AbstractAuth){
                 if($auth->login($uid, $passphrase)) {
+                    $uuid = UserObject::calculeUuid($uid, $auth->authSourceName);
                     return array(
-                        'uuid' => UserObject::calculeUuid($uid, $auth->authSourceName),
+                        'uuid' => $uuid,
                         'uid' => $uid,
                         'authsource' => $auth->authSourceName,
                     );
@@ -104,10 +105,11 @@ class AuthStack extends AbstractAuth
         foreach ($this->authstack as $auth)
         {
             if($auth instanceof AbstractAuth){
+                $uuid = UserObject::calculeUuid($uid, $auth->authSourceName);
                 if($auth->isExist($uid)) return array(
                     'uid' => $uid,
                     'authsource' => $auth->authSourceName,
-                    'uuid' => UserObject::calculeUuid($uid, $auth->authSourceName),
+                    'uuid' => $uuid,
                 );
             }
         }

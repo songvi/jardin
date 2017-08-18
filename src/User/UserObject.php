@@ -834,7 +834,7 @@ class UserObject implements  StatefulInterface
     }
 
     public static function calculeUuid($extUid, $authSourceName){
-            return Uuid::uuid5(Uuid::NAMESPACE_OID, $authSourceName.$extUid);
+            return Uuid::uuid5(Uuid::NAMESPACE_OID, $authSourceName.$extUid)->toString();
     }
 
     public function setCreatedAt($time){

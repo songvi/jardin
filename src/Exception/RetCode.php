@@ -7,6 +7,6 @@ class RetCode{
     const USER_NOT_EXIST        = 1002;
     const LOGIN_FAILED          = 1003;
     const ACTIVATION_KEY_INVALID    = 1004;
-    const PASSWORD_NOT_MATCHED    = 1005;
-    const PASSWORD_POLICY_ERROR    = 1006;
+    const PASSWORD_NOT_MATCHED      = 1005;
+    const PASSWORD_POLICY_ERROR     = 1006;
 }
