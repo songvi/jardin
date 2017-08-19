@@ -3,8 +3,7 @@
 use Vuba\AuthN\AuthN;
 use Vuba\AuthN\Service\ConfServiceYaml;
 use Vuba\AuthN\Exception\ActivationKeyInvalid;
-use Vuba\AuthN\Log\AbstractLogger;
-use Vuba\AuthN\Context\Context;
+use Psr\Log\AbstractLogger;
 use \Vuba\AuthN\Exception\RetCode;
 
 require '../src/AuthN.php';
@@ -27,8 +26,8 @@ class AuthNTest extends \PHPUnit\Framework\TestCase
         self::$user['username2'] = 'test2';
         self::$user['password2'] = 'password2';
         self::$user['newpw'] = 'P@ssw0rd';
-        self::$logger = new AbstractLogger();
-        self::$context = new Context();
+        self::$logger = new logger();
+        self::$context = array();
     }
 
     protected function setUp()
@@ -203,7 +202,166 @@ class AuthNTest extends \PHPUnit\Framework\TestCase
             $this->assertEquals($user->getPhoneNumber(), '0123456789');
             $this->assertEquals($user->getAddress(), 'Address at 45 avenue du monde');
         }
+
     }
+    /*
+    public function testother(){
+       // $this->expectException(ActivationKeyInvalid::class);
+        self::$authn->modify(self::$user['username'], array(
+            'sub' => 'Sub',
+            'name' => 'Name',
+            'given_name' => 'Given Name',
+            'family_name' => 'Family Name',
+            'middle_name' => 'Middle Name',
+            'nickname' => 'Nick Name',
+            'preferred_username' => 'Preferred Username',
+            'profile' => 'Profile',
+            'email' => 'Email@gmail.com',
+            'email_verified' => 'Email@gmail.com',
+            'gender' => '1',
+            'birthdate' => new \DateTime('2000-01-02 00:00:00'),
+            'zoneinfo' => 'ZoneInfo',
+            'locale' => 'Locale',
+            'phone_number' => '0123456789',
+            'address' => 'Address at 45 avenue du monde'
+        ), self::$context, self::$logger);
+        self::$authn->modify(self::$user['username'], array(
+            'sub' => 'Sub',
+            'name' => 'Name',
+            'given_name' => 'Given Name',
+            'family_name' => 'Family Name',
+            'middle_name' => 'Middle Name',
+            'nickname' => 'Nick Name',
+            'preferred_username' => 'Preferred Username',
+            'profile' => 'Profile',
+            'email' => 'Email@gmail.com',
+            'email_verified' => 'Email@gmail.com',
+            'gender' => '1',
+            'birthdate' => new \DateTime('2000-01-02 00:00:00'),
+            'zoneinfo' => 'ZoneInfo',
+            'locale' => 'Locale',
+            'phone_number' => '0123456789',
+            'address' => 'Address at 45 avenue du monde'
+        ), self::$context, self::$logger);
+        self::$authn->modify(self::$user['username'], array(
+            'sub' => 'Sub',
+            'name' => 'Name',
+            'given_name' => 'Given Name',
+            'family_name' => 'Family Name',
+            'middle_name' => 'Middle Name',
+            'nickname' => 'Nick Name',
+            'preferred_username' => 'Preferred Username',
+            'profile' => 'Profile',
+            'email' => 'Email@gmail.com',
+            'email_verified' => 'Email@gmail.com',
+            'gender' => '1',
+            'birthdate' => new \DateTime('2000-01-02 00:00:00'),
+            'zoneinfo' => 'ZoneInfo',
+            'locale' => 'Locale',
+            'phone_number' => '0123456789',
+            'address' => 'Address at 45 avenue du monde'
+        ), self::$context, self::$logger);
+        self::$authn->modify(self::$user['username'], array(
+            'sub' => 'Sub',
+            'name' => 'Name',
+            'given_name' => 'Given Name',
+            'family_name' => 'Family Name',
+            'middle_name' => 'Middle Name',
+            'nickname' => 'Nick Name',
+            'preferred_username' => 'Preferred Username',
+            'profile' => 'Profile',
+            'email' => 'Email@gmail.com',
+            'email_verified' => 'Email@gmail.com',
+            'gender' => '1',
+            'birthdate' => new \DateTime('2000-01-02 00:00:00'),
+            'zoneinfo' => 'ZoneInfo',
+            'locale' => 'Locale',
+            'phone_number' => '0123456789',
+            'address' => 'Address at 45 avenue du monde'
+        ), self::$context, self::$logger);
+        self::$authn->modify(self::$user['username'], array(
+            'sub' => 'Sub',
+            'name' => 'Name',
+            'given_name' => 'Given Name',
+            'family_name' => 'Family Name',
+            'middle_name' => 'Middle Name',
+            'nickname' => 'Nick Name',
+            'preferred_username' => 'Preferred Username',
+            'profile' => 'Profile',
+            'email' => 'Email@gmail.com',
+            'email_verified' => 'Email@gmail.com',
+            'gender' => '1',
+            'birthdate' => new \DateTime('2000-01-02 00:00:00'),
+            'zoneinfo' => 'ZoneInfo',
+            'locale' => 'Locale',
+            'phone_number' => '0123456789',
+            'address' => 'Address at 45 avenue du monde'
+        ), self::$context, self::$logger);
+        self::$authn->modify(self::$user['username'], array(
+            'sub' => 'Sub',
+            'name' => 'Name',
+            'given_name' => 'Given Name',
+            'family_name' => 'Family Name',
+            'middle_name' => 'Middle Name',
+            'nickname' => 'Nick Name',
+            'preferred_username' => 'Preferred Username',
+            'profile' => 'Profile',
+            'email' => 'Email@gmail.com',
+            'email_verified' => 'Email@gmail.com',
+            'gender' => '1',
+            'birthdate' => new \DateTime('2000-01-02 00:00:00'),
+            'zoneinfo' => 'ZoneInfo',
+            'locale' => 'Locale',
+            'phone_number' => '0123456789',
+            'address' => 'Address at 45 avenue du monde'
+        ), self::$context, self::$logger);
+        self::$authn->modify(self::$user['username'], array(
+            'sub' => 'Sub',
+            'name' => 'Name',
+            'given_name' => 'Given Name',
+            'family_name' => 'Family Name',
+            'middle_name' => 'Middle Name2',
+            'nickname' => 'Nick Name',
+            'preferred_username' => 'Preferred Username2',
+            'profile' => 'Profile',
+            'email' => 'Email@gmail.com',
+            'email_verified' => 'Email@gmail.com',
+            'gender' => '1',
+            'birthdate' => new \DateTime('2000-01-03 00:00:00'),
+            'zoneinfo' => 'ZoneInfo',
+            'locale' => 'Locale',
+            'phone_number' => '012345678912',
+            'address' => 'Address at 45 avennue du monde'
+        ), self::$context, self::$logger);
+
+        $this->assertTrue(self::$authn->forgotpw(self::$user['username'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->reSendForgotpw(self::$user['username'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->reSendForgotpw(self::$user['username'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->reSendForgotpw(self::$user['username'], self::$context, self::$logger));
+
+        $this->assertFalse(self::$authn->reSendForgotpw(self::$user['username'], self::$context, self::$logger));
+        $this->assertFalse(self::$authn->reSendForgotpw(self::$user['username'], self::$context, self::$logger));
+        $this->assertFalse(self::$authn->reSendForgotpw(self::$user['username'], self::$context, self::$logger));
+        $this->assertFalse(self::$authn->reSendForgotpw(self::$user['username'], self::$context, self::$logger));
+
+        $this->assertFalse(self::$authn->login(self::$user['username'], self::$user['newpw'], self::$context, self::$logger));
+        //$this->assertTrue(self::$authn->confirm(self::$user['username'], $activationCode,self::$user['newpw']));
+        $this->assertTrue(self::$authn->login(self::$user['username'], self::$user['newpw'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'], self::$user['newpw'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'], self::$user['newpw'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'], self::$user['newpw'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'], self::$user['newpw'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'], self::$user['newpw'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->resetpw(self::$user['username'], self::$user['newpw'], self::$user['username'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'],self::$user['username'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'],self::$user['username'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'],self::$user['username'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'],self::$user['username'], self::$context, self::$logger));
+        $this->assertTrue(self::$authn->login(self::$user['username'],self::$user['username'], self::$context, self::$logger));
+
+        $this->assertTrue(self::$authn->deleteUser(self::$user['username'], self::$context, self::$logger));
+    }
+    */
 
     public function tearDown()
     {
@@ -219,3 +377,19 @@ class AuthNTest extends \PHPUnit\Framework\TestCase
     }
 }
 
+class logger extends AbstractLogger{
+
+    /**
+     * Logs with an arbitrary level.
+     *
+     * @param mixed $level
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function log($level, $message, array $context = array())
+    {
+
+    }
+}

@@ -12,13 +12,12 @@ use Vuba\AuthN\Exception\ActivationKeyInvalidException;
 use Vuba\AuthN\Exception\LoginFailedException;
 use Vuba\AuthN\Exception\UserAlreadyExistedException;
 use Vuba\AuthN\Exception\UserNotFoundException;
-use Vuba\AuthN\Log\LoggerInterface;
+use Psr\Log\LoggerInterface;
 use Vuba\AuthN\Service\IConfService;
 use Vuba\AuthN\User\UserFSM;
 use Vuba\AuthN\User\UserObject;
 use Vuba\AuthN\UserStorage\UserStorageSql;
 use Vuba\AuthN\UserUserObject;
-use Vuba\AuthN\Context\IContext;
 
 /**
  * Class AuthN
@@ -68,7 +67,7 @@ class AuthN
      *
      */
 
-    public function register($uid, IContext $context= null, LoggerInterface $logger)
+    public function register($uid, array $context, LoggerInterface $logger)
     {
         // If user's already existed in auth sql and auth storage
         if ($this->authStack->userExist($uid)) {
@@ -96,7 +95,7 @@ class AuthN
         }
     }
 
-    public function reSend($uid, IContext $context = null, LoggerInterface $logger)
+    public function reSend($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) return false;
         $user = $this->userStorage->loadUser($uid);
@@ -115,7 +114,7 @@ class AuthN
         }
     }
 
-    public function confirm($uid, $password, $activationCode, IContext $context= null, LoggerInterface $logger)
+    public function confirm($uid, $password, $activationCode, array $context, LoggerInterface $logger)
     {
         if (is_null($password)) return false;
         $user = $this->authStack->userExist($uid);
@@ -145,7 +144,7 @@ class AuthN
         }
     }
 
-    public function login($uid, $password, IContext $context= null, LoggerInterface $logger)
+    public function login($uid, $password, array $context, LoggerInterface $logger)
     {
         if (empty($uid) || empty($password)) return false;
         $user = $this->authStack->userExist($uid);
@@ -193,7 +192,7 @@ class AuthN
         throw new UserNotFoundException();
     }
 
-    public function modify($uid, $kv = array(), IContext $context= null, LoggerInterface $logger)
+    public function modify($uid, $kv = array(), array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) return false;
         $user = $this->authStack->userExist($uid);
@@ -302,7 +301,7 @@ class AuthN
         return true;
     }
 
-    public function resetpw($uid, $oldpassword, $newpassword, IContext $context= null, LoggerInterface $logger)
+    public function resetpw($uid, $oldpassword, $newpassword, array $context, LoggerInterface $logger)
     {
         if (is_null($uid) ||
             is_null($oldpassword) ||
@@ -333,7 +332,7 @@ class AuthN
         return false;
     }
 
-    public function forgotpw($uid, IContext $context= null, LoggerInterface $logger)
+    public function forgotpw($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) return false;
 
@@ -357,7 +356,7 @@ class AuthN
         return true;
     }
 
-    public function reSendForgotpw($uid, IContext $context= null, LoggerInterface $logger)
+    public function reSendForgotpw($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) return false;
         $user = $this->authStack->userExist($uid);
@@ -377,7 +376,7 @@ class AuthN
         return true;
     }
 
-    public function lock($uid, IContext $context= null, LoggerInterface $logger)
+    public function lock($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) return false;
         $user = $this->authStack->userExist($uid);
@@ -396,7 +395,7 @@ class AuthN
         return true;
     }
 
-    public function unlock($uid, IContext $context= null, LoggerInterface $logger)
+    public function unlock($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) return false;
         $user = $this->authStack->userExist($uid);
@@ -413,7 +412,7 @@ class AuthN
         throw new ActionNotAllowOnStateException();
     }
 
-    public function close($uid, IContext $context= null, LoggerInterface $logger)
+    public function close($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) return false;
         $user = $this->authStack->userExist($uid);
@@ -434,12 +433,12 @@ class AuthN
     /**
      *
      */
-    public function getUserList(IContext $context= null, LoggerInterface $logger)
+    public function getUserList(array $context, LoggerInterface $logger)
     {
 
     }
 
-    public function deleteUser($uid, IContext $context= null, LoggerInterface $logger)
+    public function deleteUser($uid, array $context, LoggerInterface $logger)
     {
         $user = $this->authStack->userExist($uid);
         if (empty($user) || !isset($user['authsource'])) throw new UserNotFoundException();
@@ -455,13 +454,13 @@ class AuthN
         return true;
     }
 
-    public function searchUser($criterias = array(), IContext $context= null, LoggerInterface $logger)
+    public function searchUser($criterias = array(), array $context, LoggerInterface $logger)
     {
         $users = $this->userStorage->search($criterias);
         return $users;
     }
 
-    public function loadUser($uid, IContext $context= null, LoggerInterface $logger)
+    public function loadUser($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) throw new UserNotFoundException();
         $user = $this->authStack->userExist($uid);
@@ -471,7 +470,7 @@ class AuthN
         return null;
     }
 
-    public function getCurrentState($uid, IContext $context= null, LoggerInterface $logger)
+    public function getCurrentState($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) throw new UserNotFoundException();
         $user = $this->userStorage->loadUser($uid);
