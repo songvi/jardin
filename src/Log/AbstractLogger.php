@@ -1,21 +1,21 @@
 <?php
 
 namespace Vuba\AuthN\Log;
+use Vuba\AuthN\Context\IContext;
 
 /**
  * Describes a logger-aware instance
  */
 class AbstractLogger implements LoggerInterface
 {
-
     /**
      * System is unusable.
      *
      * @param string $message
-     * @param array $context
+     * @param IContext $context
      * @return null
      */
-    public function emergency($message, array $context = array())
+    public function emergency($message, IContext $context)
     {
 
     }
@@ -27,10 +27,10 @@ class AbstractLogger implements LoggerInterface
      * trigger the SMS alerts and wake you up.
      *
      * @param string $message
-     * @param array $context
+     * @param IContext $context
      * @return null
      */
-    public function alert($message, array $context = array())
+    public function alert($message, IContext $context)
     {
 
     }
@@ -41,10 +41,10 @@ class AbstractLogger implements LoggerInterface
      * Example: Application component unavailable, unexpected exception.
      *
      * @param string $message
-     * @param array $context
+     * @param IContext $context
      * @return null
      */
-    public function critical($message, array $context = array())
+    public function critical($message, IContext $context)
     {
 
     }
@@ -54,10 +54,10 @@ class AbstractLogger implements LoggerInterface
      * be logged and monitored.
      *
      * @param string $message
-     * @param array $context
+     * @param IContext $context
      * @return null
      */
-    public function error($message, array $context = array())
+    public function error($message, IContext $context)
     {
 
     }
@@ -69,10 +69,10 @@ class AbstractLogger implements LoggerInterface
      * that are not necessarily wrong.
      *
      * @param string $message
-     * @param array $context
+     * @param IContext $context
      * @return null
      */
-    public function warning($message, array $context = array())
+    public function warning($message, IContext $context)
     {
 
     }
@@ -81,10 +81,10 @@ class AbstractLogger implements LoggerInterface
      * Normal but significant events.
      *
      * @param string $message
-     * @param array $context
+     * @param IContext $context
      * @return null
      */
-    public function notice($message, array $context = array())
+    public function notice($message, IContext $context)
     {
 
     }
@@ -95,10 +95,10 @@ class AbstractLogger implements LoggerInterface
      * Example: User logs in, SQL logs.
      *
      * @param string $message
-     * @param array $context
+     * @param IContext $context
      * @return null
      */
-    public function info($message, array $context = array())
+    public function info($message, IContext $context)
     {
 
     }
@@ -107,10 +107,10 @@ class AbstractLogger implements LoggerInterface
      * Detailed debug information.
      *
      * @param string $message
-     * @param array $context
+     * @param IContext $context
      * @return null
      */
-    public function debug($message, array $context = array())
+    public function debug($message, IContext $context)
     {
 
     }
@@ -120,10 +120,10 @@ class AbstractLogger implements LoggerInterface
      *
      * @param mixed $level
      * @param string $message
-     * @param array $context
+     * @param IContext $context
      * @return null
      */
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, IContext $context)
     {
 
     }

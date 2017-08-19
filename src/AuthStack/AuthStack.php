@@ -4,6 +4,7 @@ namespace Vuba\AuthN\AuthStack;
 
 use Vuba\AuthN\Service\IConfService;
 use Vuba\AuthN\User\UserObject;
+use Vuba\AuthN\UserStorage\UserStorageSql;
 
 class AuthStack extends AbstractAuth
 {
@@ -32,6 +33,20 @@ class AuthStack extends AbstractAuth
                     default:
                         break;
                 }
+            }
+        }
+
+        $userStorage = $confService->getUserStorage();
+        if (!empty($userStorage) && isset($userStorage['type'])) {
+            switch (strtolower($userStorage['type'])) {
+                case 'sql':
+                    $Storage = new UserStorageSql($confService);
+                    $this->userStorage = $Storage;
+                    break;
+                case 'ldap':
+                    break;
+                default:
+                    break;
             }
         }
         $this->sort();
@@ -89,16 +104,11 @@ class AuthStack extends AbstractAuth
         {
             if($auth instanceof AbstractAuth){
                 if($auth->login($uid, $passphrase)) {
-                    $uuid = UserObject::calculeUuid($uid, $auth->authSourceName);
-                    return array(
-                        'uuid' => $uuid,
-                        'uid' => $uid,
-                        'authsource' => $auth->authSourceName,
-                    );
+                    return true;
                 }
             }
         }
-        return null;
+        return false;
     }
 
     public function userExist($uid){

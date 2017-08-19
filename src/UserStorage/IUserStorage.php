@@ -10,7 +10,7 @@ interface IUserStorage
      * @param $uid
      * @return mixed
      */
-    public function loadUser($uid);
+    public function loadUser($uuid);
 
     /**
      * @param UserObject $userObject

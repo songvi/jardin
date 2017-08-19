@@ -23,13 +23,13 @@ class UserStorageSql implements IUserStorage
     /**
      *
      */
-    public function loadUser($uid)
+    public function loadUser($uuid)
     {
+        $this->em->clear();
         $userRepo = $this->em->getRepository('Vuba\AuthN\User\UserObject');
-        $user = $userRepo->findBy(array('extuid' => $uid));
-        if(!isset($user[0])) return null;
-
-        return $user[0];
+        $user = $userRepo->findBy(array('uuid' => $uuid));
+        if(count($user) > 0) return $user[0];
+        return null;
     }
 
     /**

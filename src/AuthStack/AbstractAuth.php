@@ -27,16 +27,6 @@ abstract class AbstractAuth
         return false;
     }
 
-    /**
-     * @param $uid
-     * @return bool
-     */
-    public function isExist($uid)
-    {
-
-        return false;
-    }
-
     public function isReadOnly(){
         return true;
     }

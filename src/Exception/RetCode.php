@@ -9,4 +9,5 @@ class RetCode{
     const ACTIVATION_KEY_INVALID    = 1004;
     const PASSWORD_NOT_MATCHED      = 1005;
     const PASSWORD_POLICY_ERROR     = 1006;
+    const USER_ALREADY_EXISTED     = 1007;
 }
