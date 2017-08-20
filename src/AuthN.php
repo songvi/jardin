@@ -140,6 +140,35 @@ class AuthN
         }
     }
 
+    public function confirmForgotPw($uid, $password, $activationCode, array $context, LoggerInterface $logger)
+    {
+        if (is_null($password)) return false;
+        $user = $this->authStack->userExist($uid);
+        if(empty($user) || !isset($user['authsource'])) throw new UserNotFoundException();
+        $user = $this->userStorage->loadUser($user['uuid']);
+        if (empty($user)) throw new UserNotFoundException();
+
+        if (empty($activationCode)) throw new ActivationKeyInvalidException("Activation key invalid");
+        if ($user instanceof UserObject) {
+            if ($activationCode !== $user->getActivationCode()) {
+                throw new ActivationKeyInvalidException("Activation key invalid");
+            }
+        }
+
+        $user->setDispatcher(new EventDispatcher());
+        $userfsm = UserFSM::getMachine($user);
+        if ($userfsm->can(UserFSM::TRANSITION_CONFIRM_FORGOTPW)) {
+            $this->authStack->getDefaultAuth()->updatePassword($uid, $password);
+            $userfsm->apply(UserFSM::TRANSITION_CONFIRM_FORGOTPW);
+            $this->userStorage->save($userfsm->getObject());
+            $logger->info(sprintf("User %s is confirmed correctly", $uid), $context);
+            return true;
+        }else{
+            $logger->error(sprintf("User %s is not allowed to do %s", $uid, "register"), $context);
+            throw new ActionNotAllowOnStateException();
+        }
+    }
+
     public function login($uid, $password, array $context, LoggerInterface $logger)
     {
         if (empty($uid) || empty($password)) return false;
