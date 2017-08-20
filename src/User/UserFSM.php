@@ -23,6 +23,7 @@ class UserFSM
     const TRANSITION_REGISTER = 'register';
     const TRANSITION_RESEND = 'resend';
     const TRANSITION_CONFIRM = 'confirm';
+    const TRANSITION_CONFIRM_FORGOTPW = 'confirmforgotpw';
     const TRANSITION_RESETPASSWORD = 'resetpw';
     const TRANSITION_FORGOTPW = 'forgotpw';
     const TRANSITION_RESEND_FORGOTPW = 'resendforgotpw';
@@ -90,11 +91,16 @@ class UserFSM
             array(__NAMESPACE__ . '\UserFSM', 'gReSend')
         ));
 
-
         $sm->addTransition(new Transition(UserFSM::TRANSITION_CONFIRM,
             UserFSM::USER_WAIT_FOR_CONFIRMATION,
             UserFSM::USER_STATE_NORMAL,
             array(__NAMESPACE__ . '\UserFSM', 'gConfirm')
+        ));
+
+        $sm->addTransition(new Transition(UserFSM::TRANSITION_CONFIRM_FORGOTPW,
+            UserFSM::USER_STATE_NORMAL,
+            UserFSM::USER_STATE_NORMAL,
+            array(__NAMESPACE__ . '\UserFSM', 'gConfirmForgotPw')
         ));
 
         $sm->addTransition(new Transition(UserFSM::TRANSITION_LOGIN,
@@ -172,6 +178,9 @@ class UserFSM
         $sm->getDispatcher()->addListener('finite.post_transition.' . UserFSM::TRANSITION_CONFIRM,
             array(__NAMESPACE__ . '\UserFSM', 'aConfirm'));
 
+        $sm->getDispatcher()->addListener('finite.post_transition.' . UserFSM::TRANSITION_CONFIRM_FORGOTPW,
+            array(__NAMESPACE__ . '\UserFSM', 'aConfirmForgotPw'));
+
         $sm->getDispatcher()->addListener('finite.post_transition.' . UserFSM::TRANSITION_FORGOTPW,
             array(__NAMESPACE__ . '\UserFSM', 'aForgotPW'));
 
@@ -216,6 +225,18 @@ class UserFSM
         if ($user instanceof UserObject) {
             if ($user->getSendConfirmCount() > IConfService::MAX_REQUEST_REGISTER) return false;
         }
+        return true;
+    }
+
+    public static function gConfirmForgotPw(StateMachine $sm){
+        // send_confirmation_count < = max_allowed
+        // Activation code should match
+        $user = $sm->getObject();
+        if ($user instanceof UserObject) {
+            $now = new \DateTime('now');
+            if (($now->getTimestamp() - $user->getActivationCodeLifetime()->getTimestamp()) > IConfService::ACTIVATION_CODE_LIFE_TIME) return false;
+        }
+
         return true;
     }
 
@@ -323,6 +344,17 @@ class UserFSM
     }
 
     public static function aConfirm(Event $event)
+    {
+        if ($event instanceof TransitionEvent) {
+            $userObject = $event->getStateMachine()->getObject();
+            if ($userObject instanceof UserObject) {
+                $userObject->setUpdatedAt(new \DateTime('now'));
+                $userObject->setSendConfirmCount(0);
+            }
+        }
+    }
+
+    public static function aConfirmForgotPw(Event $event)
     {
         if ($event instanceof TransitionEvent) {
             $userObject = $event->getStateMachine()->getObject();
