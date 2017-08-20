@@ -117,13 +117,13 @@ class UserFSM
 
         $sm->addTransition(new Transition(UserFSM::TRANSITION_FORGOTPW,
             UserFSM::USER_STATE_NORMAL,
-            UserFSM::USER_WAIT_FOR_CONFIRMATION,
+            UserFSM::USER_STATE_NORMAL,
             array(__NAMESPACE__ . '\UserFSM', 'gForgotPW')
         ));
 
         $sm->addTransition(new Transition(UserFSM::TRANSITION_RESEND_FORGOTPW,
-            UserFSM::USER_WAIT_FOR_CONFIRMATION,
-            UserFSM::USER_WAIT_FOR_CONFIRMATION,
+            UserFSM::USER_STATE_NORMAL,
+            UserFSM::USER_STATE_NORMAL,
             array(__NAMESPACE__ . '\UserFSM', 'gReSendForgotPW')
         ));
 
