@@ -363,6 +363,7 @@ class UserFSM
                 $userObject->setSendConfirmCount(0);
                 $userObject->setLockTime(0);
                 $userObject->setForgetPwCount(0);
+                $userObject->setLoginFailedCount(0);
             }
         }
     }

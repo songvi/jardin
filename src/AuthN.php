@@ -63,10 +63,6 @@ class AuthN
         }
     }
 
-    /**
-     *
-     */
-
     public function register($uid, array $context, LoggerInterface $logger)
     {
         // If user's already existed in auth sql and auth storage
@@ -171,7 +167,6 @@ class AuthN
                 if($this->authStack->login($uid, $password)) {
                     $userfsm->apply('login');
                     $logger->info(sprintf("User %s logged in successfully", $uid), $context);
-                    //$userObject->setLogonCount($userObject->getLogonCount() + 1);
                     $this->userStorage->save($userObject);
                     return true;
                 }else
@@ -332,6 +327,9 @@ class AuthN
         return false;
     }
 
+    /**
+     *
+     */
     public function forgotpw($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) return false;
