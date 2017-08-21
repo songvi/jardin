@@ -108,7 +108,7 @@ class AuthMySQL extends AbstractAuth
         return PasswordLock::decryptAndVerify($passphrase, $encryptedPassPhrase, $this->key);
     }
 
-    public function getPassPhrase($uid){
+    protected function getPassPhrase($uid){
         $result = $this->conn->query("SELECT [password] FROM users WHERE [uid] = %s", $uid);
         $pass = $result->fetchSingle();
         return $pass;

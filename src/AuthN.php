@@ -465,6 +465,9 @@ class AuthN
 
     }
 
+    /**
+     * use for testing
+     */
     public function deleteUser($uid, array $context, LoggerInterface $logger)
     {
         $user = $this->authStack->userExist($uid);

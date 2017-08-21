@@ -1023,4 +1023,31 @@ class UserObject implements  StatefulInterface
     {
         return $this->login_failed_count;
     }
+
+
+    private $claims;
+
+    /**
+     * Set claims
+     *
+     * @param string $claims
+     *
+     * @return UserObject
+     */
+    public function setClaims($claims)
+    {
+        $this->claims = $claims;
+
+        return $this;
+    }
+
+    /**
+     * Get claims
+     *
+     * @return string
+     */
+    public function getClaims()
+    {
+        return $this->claims;
+    }
 }

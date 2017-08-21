@@ -143,3 +143,6 @@ Vuba\AuthN\User\UserObject:
       nullable: true
     created_at:
       type: datetime
+    claims:
+      type: text
+
