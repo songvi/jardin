@@ -493,7 +493,7 @@ class AuthN
     public function loadUser($uid, array $context, LoggerInterface $logger)
     {
         if (is_null($uid)) throw new UserNotFoundException();
-        //$user = $this->authStack->userExist($uid);
+        $user = $this->authStack->userExist($uid);
         if(!empty($user)){
             // TODO restrict information
             return $this->userStorage->loadUser($user['uuid']);
