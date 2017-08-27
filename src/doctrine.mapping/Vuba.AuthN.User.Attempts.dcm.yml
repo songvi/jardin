@@ -1,6 +1,6 @@
 Vuba\AuthN\User\Attempts:
   type: entity
-  table: attempts
+  table: oauth_attempts
   user_class: Vuba\AuthN\User\Attempts
   indexes:
     name_index:
