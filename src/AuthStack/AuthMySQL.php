@@ -59,7 +59,7 @@ class AuthMySQL extends AbstractAuth
                 "state" => UserFSM::USER_STATE_INIT
             ];
 
-            $result = $this->conn->query("INSERT INTO [users] ", $data);
+            $result = $this->conn->query("INSERT INTO [oauth_users_pw] ", $data);
             return true;
         }
         return false;
@@ -74,22 +74,22 @@ class AuthMySQL extends AbstractAuth
                 "password" => $pass,
                 "state" => UserFSM::USER_STATE_INIT];
 
-            $result = $this->conn->query("INSERT INTO [users] ", $data);
+            $result = $this->conn->query("INSERT INTO [oauth_users_pw] ", $data);
         }
     }
 
     public function isExist($uid){
-        $result = $this->conn->query("SELECT COUNT(*) from [users] WHERE [uid] = %s", $uid);
+        $result = $this->conn->query("SELECT COUNT(*) from [oauth_users_pw] WHERE [uid] = %s", $uid);
         return (intval($result->fetchSingle()) > 0);
     }
 
     public function countUser($state = UserFSM::USER_STATE_NORMAL){
-        $result = $this->conn->query("SELECT COUNT(*) from [users] WHERE [state] = %s", $state);
+        $result = $this->conn->query("SELECT COUNT(*) from [oauth_users_pw] WHERE [state] = %s", $state);
         return intval($result->fetchSingle());
     }
 
     public function updatePassword($uid, $password){
-        $result = $this->conn->query("UPDATE [users] set [password] = %s WHERE [uid] = %s", $this->getHash($password), $uid);
+        $result = $this->conn->query("UPDATE [oauth_users_pw] set [password] = %s WHERE [uid] = %s", $this->getHash($password), $uid);
     }
 
     protected function getHash($clearPassPhrase){
@@ -109,21 +109,21 @@ class AuthMySQL extends AbstractAuth
     }
 
     protected function getPassPhrase($uid){
-        $result = $this->conn->query("SELECT [password] FROM users WHERE [uid] = %s", $uid);
+        $result = $this->conn->query("SELECT [password] FROM [oauth_users_pw] WHERE [uid] = %s", $uid);
         $pass = $result->fetchSingle();
         return $pass;
     }
 
     public function delete($uid){
         if($this->isExist($uid)){
-            $result = $this->conn->query("DELETE FROM [users] WHERE [uid] = %s", $uid);
+            $result = $this->conn->query("DELETE FROM [oauth_users_pw] WHERE [uid] = %s", $uid);
             return $result;
         }
         return false;
     }
 
     public function listUser($state){
-        $result = $this->conn->query("SELECT [uid] from [users] WHERE [state] = %s", $state);
+        $result = $this->conn->query("SELECT [uid] from [oauth_users_pw] WHERE [state] = %s", $state);
         return intval($result->fetchSingle());
     }
 }

@@ -145,4 +145,4 @@ Vuba\AuthN\User\UserObject:
       type: datetime
     claims:
       type: text
-
+      nullable: true
