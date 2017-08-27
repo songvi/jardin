@@ -497,8 +497,9 @@ class AuthN
         if(!empty($user)){
             // TODO restrict information
             return $this->userStorage->loadUser($user['uuid']);
+        }else{
+            return $this->userStorage->loadUser($uid);
         }
-        return null;
     }
 
     public function getCurrentState($uid, array $context, LoggerInterface $logger)
